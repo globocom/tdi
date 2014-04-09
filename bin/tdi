@@ -1,0 +1,167 @@
+#!/usr/bin/env ruby
+
+# == TDI
+#
+# Run test plans against the infrastructure, performing tasks such as validating
+# for:
+# - Network access (ACL).
+# - File/directory RO/RW access (Local/NFS).
+# - SSH session capability (Private/Public key pair based auth).
+# - HTTP request/response.
+# TODO: - Successful execution of an arbitrary command.
+# TODO: - DNS resolution.
+#
+# === Authors
+#
+# Rogério Carvalho Schneider <rogerio.schneider@corp.globo.com>
+# Leonardo Martins de Lima <leonardo.martins@corp.globo.com>
+# Diogo Kiss <diogokiss@corp.globo.com>
+# Francisco Corrêa <francisco@corp.globo.com>
+#
+# === Copyright
+#
+# Copyright (C) 2013-2014 Globo.com
+
+##############
+## REQUIRES ##
+##############
+
+require 'slop'
+require 'json'
+require 'colorize'
+require_relative '../lib/planner'
+require_relative '../lib/runner'
+
+###############
+## CONSTANTS ##
+###############
+
+UNMERGEABLE_KEY_LIST = %w(desc inherits notest)
+UNTESTABLE_ROLE_LIST = %w(global common)
+
+#############
+## HELPERS ##
+#############
+
+# Autoload any helper file inside helper's directory.
+BIN_DIR = File.dirname(File.expand_path(__FILE__))
+Dir["#{BIN_DIR}/../helper/*.rb"].each do |filename|
+  filename.sub!(/\.rb$/, '')
+  require filename
+end
+
+##########
+## MAIN ##
+##########
+
+def main(opts)
+  # Test plan input file.
+  filename = ARGV[0]
+
+  # Wrong number of command line arguments.
+  if filename.nil? and not opts.help?
+    puts opts
+    exit 1
+  end
+
+  # It is not an error to ask for help.
+  exit 0 if opts.help?
+
+  # Validation.
+  validate_args(opts)
+
+  # Start.
+  if opts[:verbose] > 0
+    puts "Using \"#{filename}\" as test plan input file.".cyan
+    puts
+  end
+
+  # Parse input file.
+  original_plan = JSON.parse(open(filename).read)
+
+  # Print input file.
+  if opts[:verbose] > 2
+    original_plan.each_pair do |role_name, role_content|
+      puts "Found role: #{role_name}".cyan
+      puts 'Role content:'.cyan
+      puts "* #{role_content}".yellow
+      puts
+    end
+  end
+
+  # Plan.
+  plan = planner(opts, original_plan)
+
+  # Print test plan.
+  if opts[:verbose] > 0
+    puts "Test plan built from \"#{filename}\":".cyan
+    puts JSON.pretty_generate(plan).yellow
+    puts
+  end
+
+  # Run tests.
+  runner(opts, filename, plan)
+end
+
+# Arguments validation.
+def validate_args(opts)
+  puts 'Validating arguments...'.cyan if opts[:verbose] > 1
+
+  if opts.plan?
+    if opts[:plan].nil?
+      puts 'ERR: When using test plan filter you must inform at least one test plan name.'.light_magenta
+      exit 1
+    end
+
+    opts[:plan].each do |plan_name|
+      unless /^\w+(::\w+)?$/.match(plan_name)
+        puts "ERR: Invalid test plan filter \"#{plan_name}\". Must match pattern \"role\" or \"role::plan\".".light_magenta
+        exit 1
+      end
+    end
+  end
+
+  if opts[:verbose] > 1
+    puts 'Validating arguments... done.'.green
+    puts
+  end
+end
+
+# Command line options.
+begin
+  opts = Slop.parse(:help => true, :strict => true) do
+    banner <<-EOS
+Usage:
+
+    tdi [options] test_plan_file
+
+Examples:
+
+    tdi tdi.json
+    tdi --plan admin tdi.json
+    tdi --plan admin::acl tdi.json
+    tdi -p admin::acl,admin::file tdi.json
+    tdi --nofail tdi.json
+    tdi --shred tdi.json
+    tdi -v tdi.json
+    tdi -vv tdi.json
+    tdi -vvv tdi.json
+
+Options:
+EOS
+    on :n, :nofail, 'No fail mode.'
+    on :p, :plan, 'Test plan list.', :as => Array, :argument => :optional
+    on :s, :shred, 'Wipe out the test plan, leaving no trace behind.'
+    on :v, :verbose, 'Verbose mode.', :as => :count
+  end
+rescue
+  puts 'ERR: Invalid option. Try -h or --help for help.'.light_magenta
+  exit 1
+end
+
+begin
+  exit main(opts)
+rescue => e
+  puts "ERR: #{e.message}".light_magenta
+  exit 1
+end

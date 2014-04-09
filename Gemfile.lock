@@ -1,0 +1,27 @@
+PATH
+  remote: .
+  specs:
+    tdi (0.1.0)
+      colorize
+      etc
+      net-ssh
+      slop
+      timeout
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    colorize (0.7.2)
+    etc (0.2.0)
+    net-ssh (2.8.0)
+    rake (10.1.0)
+    slop (3.5.0)
+    timeout (0.0.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler (~> 1.5)
+  rake
+  tdi!
