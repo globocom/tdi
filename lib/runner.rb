@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with TDI.  If not, see <http://www.gnu.org/licenses/>.
 
+require 'os'
 require_relative 'tdi'
 
 # Run tests.
@@ -97,7 +98,15 @@ def runner(opts, filename, plan)
   # Shred.
   if opts.shred?
     puts "Shreding and removing test plan file: \"#{filename}\"...".cyan if opts[:verbose] > 2
-    if system("shred -f -n 38 -u -z #{filename}")
+    if OS.linux?
+      shred_cmd = "shred -f -n 38 -u -z #{filename}"
+    elsif OS.mac?
+      shred_cmd = "srm -f -z #{filename}"
+    else
+      shred_cmd = "rm -f #{filename}"
+    end
+    puts "Shreding with command \"#{shred_cmd}\"...".cyan if opts[:verbose] > 2
+    if system(shred_cmd)
       puts "Shreding and removing test plan file: \"#{filename}\"... done.".green if opts[:verbose] > 2
     else
       puts "ERR: Shreding and removing test plan file: \"#{filename}\".".light_magenta
