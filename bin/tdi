@@ -75,7 +75,7 @@ def main(opts)
   filename = ARGV[0]
 
   # Wrong number of command line arguments.
-  if filename.nil? and not opts.help?
+  if filename.nil? and not (opts.help? or opts.version?)
     puts opts
     exit 1
   end
@@ -85,6 +85,12 @@ def main(opts)
 
   # Validation.
   validate_args(opts)
+
+  # Version.
+  if opts.version?
+    puts Tdi::VERSION
+    exit 0
+  end
 
   # Start.
   if opts[:verbose] > 0
@@ -137,6 +143,11 @@ def validate_args(opts)
     end
   end
 
+  if opts.version? and ARGV.size != 0
+    puts "ERR: Version must be the only argument.".light_magenta
+    exit 1
+  end
+
   if opts[:verbose] > 1
     puts 'Validating arguments... done.'.green
     puts
@@ -162,6 +173,7 @@ Examples:
     tdi -v tdi.json
     tdi -vv tdi.json
     tdi -vvv tdi.json
+    tdi --version
 
 Options:
 EOS
@@ -169,6 +181,7 @@ EOS
     on :p, :plan, 'Test plan list.', :as => Array, :argument => :optional
     on :s, :shred, 'Wipe out the test plan, leaving no trace behind.'
     on :v, :verbose, 'Verbose mode.', :as => :count
+    on :version, 'Version.'
   end
 rescue
   puts 'ERR: Invalid option. Try -h or --help for help.'.light_magenta
