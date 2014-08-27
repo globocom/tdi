@@ -23,6 +23,7 @@ validating your deployed infrastructure and external dependencies.)
   spec.add_development_dependency 'bundler', '~> 1.5'
   spec.add_development_dependency 'rake'
 
+  spec.add_runtime_dependency 'os'
   spec.add_runtime_dependency 'etc'
   spec.add_runtime_dependency 'slop'
   spec.add_runtime_dependency 'colorize'
