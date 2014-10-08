@@ -20,8 +20,8 @@
 require 'net/http'
 require "net/https"
 require 'timeout'
-require 'etc'
 require 'uri'
+require 'resolv'
 
 class TDIPlan < TDI
 
@@ -60,18 +60,19 @@ class TDIPlan < TDI
 
       host, port, path, proxy_addr, proxy_port, code, match, ssl, timeout_limit = _parse(case_name,case_content)
 
-      # User.
+      # User
       user = Etc.getpwuid(Process.euid).name
      
       response = nil
 
       if not proxy_addr.nil? and not proxy_port.nil?
-
-        http = Net::HTTP::Proxy(proxy_addr, proxy_port)
-
         begin
+          Resolv.getaddress(proxy_addr)
+          http = Net::HTTP::Proxy(proxy_addr, proxy_port)
+
           timeout(timeout_limit) do
             begin
+              Resolv.getaddress(host)
               http.start(host,port,:use_ssl => ssl, :verify_mode => OpenSSL::SSL::VERIFY_NONE) { |http|
                 response = http.get(path)
               }
@@ -79,20 +80,24 @@ class TDIPlan < TDI
               warning "HTTP (#{user}): #{case_name} - Connection reset or refused."
             end
           end
+        rescue Resolv::ResolvError => re
+          failure "HTTP (#{user}): #{re.message}"
+        rescue Resolv::ResolvTimeout => rt
+          failure "HTTP (#{user}): #{rt.message}"
         rescue Timeout::Error
           failure "HTTP (#{user}): #{case_name} - Timed out (#{timeout_limit}s)."
         end
         
       else
+        begin
+          Resolv.getaddress(host)
+          http = Net::HTTP.new(host, port)
 
-        http = Net::HTTP.new(host, port)
+          if ssl
+              http.use_ssl = true
+              http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+          end
 
-        if ssl
-            http.use_ssl = true
-            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        end 
-
-        begin        
           timeout(timeout_limit) do
             begin
               http.start() { |http|

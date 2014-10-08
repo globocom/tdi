@@ -18,7 +18,7 @@
 # along with TDI.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'net/ssh'
-require 'etc'
+require 'resolv'
 
 class TDIPlan < TDI
   def ssh(plan)
@@ -59,12 +59,17 @@ class TDIPlan < TDI
 
         begin
           timeout(5) do
+            Resolv.getaddress(host)
             ssh_session = Net::SSH.start(host,
                                          remote_user,
                                          :auth_methods => ['publickey'])
             ssh_session.close
             success "SSH (#{local_user}): #{remote_user}@#{host}"
           end
+        rescue Resolv::ResolvError => re
+          failure "SSH (#{local_user}): #{re.message}"
+        rescue Resolv::ResolvTimeout => rt
+          failure "SSH (#{local_user}): #{rt.message}"
         rescue
           failure "SSH (#{local_user}): #{remote_user}@#{host}"
         end

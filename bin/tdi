@@ -42,6 +42,7 @@
 ## REQUIRES ##
 ##############
 
+require 'etc'
 require 'slop'
 require 'json'
 require 'colorize'

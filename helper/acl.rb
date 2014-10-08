@@ -19,7 +19,7 @@
 
 require 'socket'
 require 'timeout'
-require 'etc'
+require 'resolv'
 
 class TDIPlan < TDI
   def acl(plan)
@@ -39,6 +39,8 @@ class TDIPlan < TDI
         begin
           timeout(timeout_limit) do
             begin
+
+              Resolv.getaddress(host)
               sock = TCPSocket.open(host, port)
               sock.close
               success "ACL (#{user}): #{host}:#{port}"
@@ -46,6 +48,10 @@ class TDIPlan < TDI
               warning "ACL (#{user}): #{host}:#{port}"
             rescue Errno::ECONNRESET, Errno::ETIMEDOUT
               failure "ACL (#{user}): Connection Refused #{host}:#{port}"
+            rescue Resolv::ResolvError => re
+              failure "ACL (#{user}): #{re.message}"
+            rescue Resolv::ResolvTimeou => rt
+              failure "ACL (#{user}): #{rt.message}"
             end
           end
         rescue Timeout::Error
