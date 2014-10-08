@@ -107,6 +107,10 @@ class TDIPlan < TDI
               warning "HTTP (#{user}): #{case_name} - Connection reset or refused."
             end
           end
+        rescue Resolv::ResolvError => re
+          failure "HTTP (#{user}): #{re.message}"
+        rescue Resolv::ResolvTimeout => rt
+          failure "HTTP (#{user}): #{rt.message}"
         rescue Timeout::Error
           failure "HTTP (#{user}): #{case_name} - Timed out."
         end
