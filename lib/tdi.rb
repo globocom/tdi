@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with TDI.  If not, see <http://www.gnu.org/licenses/>.
 
-require 'tdi/version'
+require_relative 'tdi/version'
 
 class TDI
   attr_accessor :passed
