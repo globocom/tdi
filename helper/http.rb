@@ -42,6 +42,7 @@ class TDIPlan < TDI
     # Params
     code = params['code'].nil? ? 200 : params['code'].to_i
     match = params['match']
+    expect_header = params['expect_header']
     timeout_limit = params['timeout'].nil? ? 2 : params['timeout'].to_i
 
     if not params['proxy'].nil?
@@ -49,8 +50,15 @@ class TDIPlan < TDI
         proxy_port = 3128 unless not proxy_port.nil?
     end
 
-    return host, port, path, proxy_addr, proxy_port, code, match, ssl, timeout_limit
-    
+    if not params['expect_header'].nil?
+        expect_header_key = params['expect_header'].split(':').first
+        expect_header_value = nil
+        if params['expect_header'].include?(':')
+            expect_header_value = params['expect_header'][params['expect_header'].index(':')+1..-1].strip
+        end
+    end
+
+    return host, port, path, proxy_addr, proxy_port, code, match, expect_header_key, expect_header_value, ssl, timeout_limit
   end
 
   def http(plan)
@@ -58,11 +66,11 @@ class TDIPlan < TDI
       val.is_a?(Hash)
     }.each_pair do |case_name,case_content|
 
-      host, port, path, proxy_addr, proxy_port, code, match, ssl, timeout_limit = _parse(case_name,case_content)
+      host, port, path, proxy_addr, proxy_port, code, match, expect_header_key, expect_header_value, ssl, timeout_limit = _parse(case_name,case_content)
 
       # User
       user = Etc.getpwuid(Process.euid).name
-     
+
       response = nil
 
       if not proxy_addr.nil? and not proxy_port.nil?
@@ -87,7 +95,7 @@ class TDIPlan < TDI
         rescue Timeout::Error
           failure "HTTP (#{user}): #{case_name} - Timed out (#{timeout_limit}s)."
         end
-        
+
       else
         begin
           Resolv.getaddress(host)
@@ -114,19 +122,21 @@ class TDIPlan < TDI
         rescue Timeout::Error
           failure "HTTP (#{user}): #{case_name} - Timed out."
         end
-        
       end
 
       if not response.nil?
           if not match.nil? and not response.body.chomp.include?(match.chomp)
-            failure "HTTP (#{user}): #{case_name} - Expected string '#{match.chomp}'."
+            failure "HTTP (#{user}): #{case_name} - Expected string '#{match.chomp}'"
+          elsif not expect_header_key.nil? and not expect_header_value.nil? and not response[expect_header_key].eql?(expect_header_value)
+            failure "HTTP (#{user}): #{case_name} - Expected header with content '#{expect_header_key}: #{expect_header_value}'"
+          elsif not expect_header_key.nil? and response[expect_header_key].nil?
+            failure "HTTP (#{user}): #{case_name} - Expected header '#{expect_header_key}'"
           elsif not code.nil? and (response.code.to_i != code)
-            failure "HTTP (#{user}): #{case_name} - Expected HTTP #{code}."
+            failure "HTTP (#{user}): #{case_name} - Expected HTTP #{code}"
           else
             success "HTTP (#{user}): #{case_name}"
           end
       end
-      
     end
   end
 end
