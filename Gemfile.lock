@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tdi (0.1.1)
+    tdi (0.1.3)
       colorize
       etc
       net-ssh
