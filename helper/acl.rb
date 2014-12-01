@@ -50,7 +50,7 @@ class TDIPlan < TDI
               failure "ACL (#{user}): Connection Refused #{host}:#{port}"
             rescue Resolv::ResolvError => re
               failure "ACL (#{user}): #{re.message}"
-            rescue Resolv::ResolvTimeou => rt
+            rescue Resolv::ResolvTimeout => rt
               failure "ACL (#{user}): #{rt.message}"
             end
           end
