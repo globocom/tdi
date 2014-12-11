@@ -20,12 +20,14 @@
 require_relative 'tdi/version'
 
 class TDI
-  attr_accessor :passed
-  alias :passed? :passed
+  attr_accessor :plan_passed, :case_passed
+  alias :plan_passed? :plan_passed
+  alias :case_passed? :case_passed
   attr_accessor :skip, :pass, :warn, :fail
 
   def initialize
-    @passed = true
+    @plan_passed = true
+    @case_passed = true
     @skip = 0
     @pass = 0
     @warn = 0
@@ -45,7 +47,8 @@ class TDI
 
   def failure(msg)
     printf("%-70s [ %s ]\n", msg, 'FAIL'.light_red )
-    @passed = false
+    @plan_passed = false
+    @case_passed = false
     @fail += 1
   end
 

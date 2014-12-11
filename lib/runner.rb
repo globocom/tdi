@@ -115,7 +115,7 @@ def runner(opts, filename, plan)
 
   puts 'Running tests... done.'.green if opts[:verbose] > 1
 
-  ret = tdiplan.passed? ? 0 : 1
+  ret = tdiplan.plan_passed? ? 0 : 1
   ret = 0 if opts.nofail?
   ret
 end
