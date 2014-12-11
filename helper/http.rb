@@ -18,124 +18,119 @@
 # along with TDI.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'net/http'
-require "net/https"
+require 'net/https'
 require 'timeout'
 require 'uri'
 require 'resolv'
 
 class TDIPlan < TDI
 
-  def _parse(uri,params)
-
+  def _parse(uri, params)
     # Normalizing
-    if not uri =~ /^https?:\/\//
-        uri = 'http://' + uri.to_s
+    unless uri =~ /^https?:\/\//
+      uri = 'http://' + uri.to_s
     end
 
     # URI
     _uri = URI(uri)
-    ssl  = _uri.scheme.eql?("https")
-    host = _uri.host
-    port = _uri.port
-    path = _uri.path.empty? ? '/' : _uri.path
+    ssl = _uri.scheme.eql?('https')
 
-    # Params
+    # Params to be sent
+    headers = params['headers']
+    headers = headers.first unless headers.nil?
+    unless params['proxy'].nil?
+      proxy_addr, proxy_port = params['proxy'].split(':')
+      proxy_port = 3128 unless not proxy_port.nil?
+    end
+
+    # Params to be checked
     code = params['code'].nil? ? 200 : params['code'].to_i
-    match = params['match']
-    expect_header = params['expect_header']
+    match = params['match'].nil? ? nil : Regexp.new(params['match'])
+    match_headers = params['match_headers']
+    match_headers = match_headers.first unless match_headers.nil?
+    unless match_headers.nil?
+      match_headers.each do |k, v|
+        match_headers[k] = Regexp.new(v) unless v.nil?
+      end
+    end
     timeout_limit = params['timeout'].nil? ? 2 : params['timeout'].to_i
 
-    if not params['proxy'].nil?
-        proxy_addr, proxy_port = params['proxy'].split(/:/)
-        proxy_port = 3128 unless not proxy_port.nil?
-    end
-
-    if not params['expect_header'].nil?
-        expect_header_key = params['expect_header'].split(':').first
-        expect_header_value = nil
-        if params['expect_header'].include?(':')
-            expect_header_value = params['expect_header'][params['expect_header'].index(':')+1..-1].strip
-        end
-    end
-
-    return host, port, path, proxy_addr, proxy_port, code, match, expect_header_key, expect_header_value, ssl, timeout_limit
+    return ssl, headers, proxy_addr, proxy_port, code, match, match_headers, timeout_limit
   end
 
   def http(plan)
     plan.select { |key, val|
       val.is_a?(Hash)
-    }.each_pair do |case_name,case_content|
+    }.each_pair do |case_name, case_content|
 
-      host, port, path, proxy_addr, proxy_port, code, match, expect_header_key, expect_header_value, ssl, timeout_limit = _parse(case_name,case_content)
+      ssl, headers, proxy_addr, proxy_port, code, match, match_headers, timeout_limit = _parse(case_name, case_content)
+
+      uri = URI(case_name)
 
       # User
       user = Etc.getpwuid(Process.euid).name
 
       response = nil
 
-      if not proxy_addr.nil? and not proxy_port.nil?
-        begin
-          Resolv.getaddress(proxy_addr)
-          http = Net::HTTP::Proxy(proxy_addr, proxy_port)
-
-          timeout(timeout_limit) do
-            begin
-              Resolv.getaddress(host)
-              http.start(host,port,:use_ssl => ssl, :verify_mode => OpenSSL::SSL::VERIFY_NONE) { |http|
-                response = http.get(path)
-              }
-            rescue Errno::ECONNREFUSED, Errno::ECONNRESET
-              warning "HTTP (#{user}): #{case_name} - Connection reset or refused."
-            end
-          end
-        rescue Resolv::ResolvError => re
-          failure "HTTP (#{user}): #{re.message}"
-        rescue Resolv::ResolvTimeout => rt
-          failure "HTTP (#{user}): #{rt.message}"
-        rescue Timeout::Error
-          failure "HTTP (#{user}): #{case_name} - Timed out (#{timeout_limit}s)."
-        end
-
+      unless proxy_addr.nil? and not proxy_port.nil?
+        http = Net::HTTP::Proxy(proxy_addr, proxy_port)
       else
-        begin
-          Resolv.getaddress(host)
-          http = Net::HTTP.new(host, port)
-
-          if ssl
-              http.use_ssl = true
-              http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-          end
-
-          timeout(timeout_limit) do
-            begin
-              http.start() { |http|
-                response = http.get(path)
-              }
-            rescue Errno::ECONNREFUSED, Errno::ECONNRESET
-              warning "HTTP (#{user}): #{case_name} - Connection reset or refused."
-            end
-          end
-        rescue Resolv::ResolvError => re
-          failure "HTTP (#{user}): #{re.message}"
-        rescue Resolv::ResolvTimeout => rt
-          failure "HTTP (#{user}): #{rt.message}"
-        rescue Timeout::Error
-          failure "HTTP (#{user}): #{case_name} - Timed out."
-        end
+        http = Net::HTTP.new(uri.host, uri.port)
       end
 
-      if not response.nil?
-          if not match.nil? and not response.body.chomp.include?(match.chomp)
-            failure "HTTP (#{user}): #{case_name} - Expected string '#{match.chomp}'"
-          elsif not expect_header_key.nil? and not expect_header_value.nil? and not response[expect_header_key].eql?(expect_header_value)
-            failure "HTTP (#{user}): #{case_name} - Expected header with content '#{expect_header_key}: #{expect_header_value}'"
-          elsif not expect_header_key.nil? and response[expect_header_key].nil?
-            failure "HTTP (#{user}): #{case_name} - Expected header '#{expect_header_key}'"
-          elsif not code.nil? and (response.code.to_i != code)
-            failure "HTTP (#{user}): #{case_name} - Expected HTTP #{code}"
-          else
-            success "HTTP (#{user}): #{case_name}"
+      begin
+        # Check for name resolution
+        Resolv.getaddress(proxy_addr) unless proxy_addr.nil?
+        Resolv.getaddress(uri.host)
+
+        req = Net::HTTP::Get.new(uri)
+        headers.each { |k, v| req[k] = v } unless headers.nil?
+
+        timeout(timeout_limit) do
+          begin
+            http.start(uri.host, uri.port, :use_ssl => ssl, :verify_mode => OpenSSL::SSL::VERIFY_NONE) do |http|
+              response = http.request(req)
+            end
+          rescue Errno::ECONNREFUSED, Errno::ECONNRESET
+            warning "HTTP (#{user}): #{case_name} - Connection reset or refused."
           end
+        end
+      rescue Resolv::ResolvError => re
+        failure "HTTP (#{user}): #{re.message}"
+      rescue Resolv::ResolvTimeout => rt
+        failure "HTTP (#{user}): #{rt.message}"
+      rescue Timeout::Error
+        failure "HTTP (#{user}): #{case_name} - Timed out."
+      end
+
+      unless response.nil?
+        @case_passed = true
+
+        unless match_headers.nil?
+          match_headers.each do |k, v|
+            if v.nil?
+              if response[k].nil?
+                failure "HTTP (#{user}): #{case_name} - Expected header '#{k}'"
+              end
+            else
+              unless v.match(response[k])
+                failure "HTTP (#{user}): #{case_name} - Expected header '#{k}: #{v.source}'"
+              end
+            end
+          end
+        end
+
+        unless match.nil?
+          unless match.match(response.body)
+            failure "HTTP (#{user}): #{case_name} - Expected content '#{match.source}'"
+          end
+        end
+
+        if response.code.to_i != code
+          failure "HTTP (#{user}): #{case_name} - Expected HTTP #{code}"
+        end
+
+        success "HTTP (#{user}): #{case_name}" if self.case_passed?
       end
     end
   end
