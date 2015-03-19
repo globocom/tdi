@@ -42,7 +42,7 @@ class TDIPlan < TDI
         begin
           Process.euid = 0
         rescue => e
-          puts "ERR: Must run as root to change user credentials #{e}).".light_magenta
+          puts "ERR: Must run as root to change user credentials (#{e.message}).".light_magenta
           exit 1
         end
 
@@ -53,7 +53,7 @@ class TDIPlan < TDI
           # private/public key pair to authenticate.
           ENV['HOME'] = Etc.getpwnam(local_user).dir
         rescue => e
-          puts "ERR: User \"#{local_user}\" not found (#{e}).".light_magenta
+          puts "ERR: User \"#{local_user}\" not found (#{e.message}).".light_magenta
           exit 1
         end
 
@@ -70,8 +70,8 @@ class TDIPlan < TDI
           failure "SSH (#{local_user}): #{re.message}"
         rescue Resolv::ResolvTimeout => rt
           failure "SSH (#{local_user}): #{rt.message}"
-        rescue
-          failure "SSH (#{local_user}): #{remote_user}@#{host}"
+        rescue => e
+          failure "SSH (#{local_user}): #{remote_user}@#{host} (#{e.message})"
         end
       end
     end
