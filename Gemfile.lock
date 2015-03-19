@@ -6,7 +6,7 @@ PATH
       etc
       net-ssh
       os
-      slop
+      slop (~> 3.6)
       timeout
 
 GEM
