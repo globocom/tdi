@@ -184,8 +184,8 @@ EOS
     on :v, :verbose, 'Verbose mode.', :as => :count
     on :version, 'Version.'
   end
-rescue
-  puts 'ERR: Invalid option. Try -h or --help for help.'.light_magenta
+rescue => e
+  puts "ERR: Invalid option. Try -h or --help for help. (#{e.message})".light_magenta
   exit 1
 end
 

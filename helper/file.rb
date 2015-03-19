@@ -39,7 +39,7 @@ class TDIPlan < TDI
       begin
         Process.euid = 0
       rescue => e
-        puts "ERR: Must run as root to change user credentials #{e}).".light_magenta
+        puts "ERR: Must run as root to change user credentials (#{e.message}).".light_magenta
         exit 1
       end
 
@@ -47,7 +47,7 @@ class TDIPlan < TDI
       begin
         Process.euid = Etc.getpwnam(user).uid
       rescue => e
-        puts "ERR: User \"#{user}\" not found (#{e}).".light_magenta
+        puts "ERR: User \"#{user}\" not found (#{e.message}).".light_magenta
         exit 1
       end
 
