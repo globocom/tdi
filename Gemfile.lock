@@ -7,7 +7,7 @@ PATH
       net-ssh
       os
       slop (~> 3.6)
-      timeout
+      timeout (= 0.0.0)
 
 GEM
   remote: https://rubygems.org/
