@@ -59,7 +59,6 @@ def runner(opts, filename, plan)
     else
       puts "* #{role_name.capitalize} - #{role_content['desc']}".cyan
     end
-#    puts "Running tests for role: #{role_name}".cyan if opts[:verbose] > 0
     puts "Total test plans to run for this role: #{total_plans}".cyan if opts[:verbose] > 1
 
     # Test plan.
@@ -70,7 +69,6 @@ def runner(opts, filename, plan)
       total_cases = plan_content.select { |key, val| val.is_a?(Hash) }.size
 
       puts "* #{plan_name.upcase}".cyan
-#      puts "Test plan: #{role_name}::#{plan_name}".cyan if opts[:verbose] > 0
       puts "Total test cases to run for this plan: #{total_cases}".cyan if opts[:verbose] > 1
 
       if opts[:verbose] > 3

@@ -36,17 +36,17 @@ class TDI
 
   def success(msg)
     # I like the seventies.
-    printf("%-70s [ %s ]\n", msg, 'PASS'.light_green )
+    printf("%-70s [ %s ]\n", msg, 'PASS'.light_green)
     @pass += 1
   end
 
   def warning(msg)
-    printf("%-70s [ %s ]\n", msg, 'WARN'.light_yellow )
+    printf("%-70s [ %s ]\n", msg, 'WARN'.light_yellow)
     @warn += 1
   end
 
   def failure(msg)
-    printf("%-70s [ %s ]\n", msg, 'FAIL'.light_red )
+    printf("%-70s [ %s ]\n", msg, 'FAIL'.light_red)
     @plan_passed = false
     @case_passed = false
     @fail += 1
