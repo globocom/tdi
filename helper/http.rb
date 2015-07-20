@@ -18,124 +18,123 @@
 # along with TDI.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'net/http'
-require "net/https"
+require 'net/https'
 require 'timeout'
 require 'uri'
 require 'resolv'
 
 class TDIPlan < TDI
-
-  def _parse(uri,params)
-
-    # Normalizing
+  def _parse(uri, params)
+    # Normalizing.
     if not uri =~ /^https?:\/\//
-        uri = 'http://' + uri.to_s
+      uri = 'http://' + uri.to_s
     end
 
-    # URI
+    # URI.
     _uri = URI(uri)
-    ssl  = _uri.scheme.eql?("https")
+    ssl  = _uri.scheme.eql?('https')
     host = _uri.host
     port = _uri.port
     path = _uri.path.empty? ? '/' : _uri.path
 
-    # Params
+    # Params.
     code = params['code'].nil? ? 200 : params['code'].to_i
     match = params['match']
     expect_header = params['expect_header']
     timeout_limit = params['timeout'].nil? ? 2 : params['timeout'].to_i
 
     if not params['proxy'].nil?
-        proxy_addr, proxy_port = params['proxy'].split(/:/)
-        proxy_port = 3128 unless not proxy_port.nil?
+      proxy, proxy_port = params['proxy'].split(/:/)
+      proxy_port = 3128 unless not proxy_port.nil?
     end
 
     if not params['expect_header'].nil?
-        expect_header_key = params['expect_header'].split(':').first
-        expect_header_value = nil
-        if params['expect_header'].include?(':')
-            expect_header_value = params['expect_header'][params['expect_header'].index(':')+1..-1].strip
-        end
+      expect_header_key = params['expect_header'].split(':').first
+      expect_header_value = nil
+      if params['expect_header'].include?(':')
+        expect_header_value = params['expect_header'][params['expect_header'].index(':')+1..-1].strip
+      end
     end
 
-    return host, port, path, proxy_addr, proxy_port, code, match, expect_header_key, expect_header_value, ssl, timeout_limit
+    return host, port, path, proxy, proxy_port, code, match, expect_header_key, expect_header_value, ssl, timeout_limit
   end
 
-  def http(plan)
-    plan.select { |key, val|
+  def http(role_name, plan_name, plan_content)
+    plan_content.select { |key, val|
       val.is_a?(Hash)
-    }.each_pair do |case_name,case_content|
+    }.each_pair do |case_name, case_content|
+      # Parse params.
+      host, port, path, proxy, proxy_port, code, match, expect_header_key, expect_header_value, ssl, timeout_limit = _parse(case_name, case_content)
 
-      host, port, path, proxy_addr, proxy_port, code, match, expect_header_key, expect_header_value, ssl, timeout_limit = _parse(case_name,case_content)
-
-      # User
+      # User.
       user = Etc.getpwuid(Process.euid).name
 
+      # Initialize vars.
+      host_addr = nil
+      proxy_addr = nil
+      res_str = case_name
+      res_dict = {url: case_name}
       response = nil
 
-      if not proxy_addr.nil? and not proxy_port.nil?
-        begin
-          Resolv.getaddress(proxy_addr)
-          http = Net::HTTP::Proxy(proxy_addr, proxy_port)
+      begin
+        host_addr = Resolv.getaddress(host)
 
+        if not proxy.nil? and not proxy_port.nil?
+          proxy_addr = Resolv.getaddress(proxy)
+          http = Net::HTTP::Proxy(proxy, proxy_port)
           timeout(timeout_limit) do
             begin
-              Resolv.getaddress(host)
-              http.start(host,port,:use_ssl => ssl, :verify_mode => OpenSSL::SSL::VERIFY_NONE) { |http|
+              http.start(host, port, use_ssl: ssl, verify_mode: OpenSSL::SSL::VERIFY_NONE) { |http|
                 response = http.get(path)
               }
-            rescue Errno::ECONNREFUSED, Errno::ECONNRESET
-              warning "HTTP (#{user}): #{case_name} - Connection reset or refused."
+            rescue Errno::ECONNREFUSED, Errno::ECONNRESET => e
+              res_msg = "HTTP (#{user}): #{res_str} (#{e.message})"
+              warning role_name, plan_name, res_msg, res_dict
             end
           end
-        rescue Resolv::ResolvError => re
-          failure "HTTP (#{user}): #{re.message}"
-        rescue Resolv::ResolvTimeout => rt
-          failure "HTTP (#{user}): #{rt.message}"
-        rescue Timeout::Error
-          failure "HTTP (#{user}): #{case_name} - Timed out (#{timeout_limit}s)."
-        end
 
-      else
-        begin
-          Resolv.getaddress(host)
+        else
           http = Net::HTTP.new(host, port)
-
           if ssl
-              http.use_ssl = true
-              http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+            http.use_ssl = true
+            http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
-
           timeout(timeout_limit) do
             begin
               http.start() { |http|
                 response = http.get(path)
               }
-            rescue Errno::ECONNREFUSED, Errno::ECONNRESET
-              warning "HTTP (#{user}): #{case_name} - Connection reset or refused."
+            rescue Errno::ECONNREFUSED, Errno::ECONNRESET => e
+              res_msg = "HTTP (#{user}): #{res_str} (#{e.message})"
+              warning role_name, plan_name, res_msg, res_dict
             end
           end
-        rescue Resolv::ResolvError => re
-          failure "HTTP (#{user}): #{re.message}"
-        rescue Resolv::ResolvTimeout => rt
-          failure "HTTP (#{user}): #{rt.message}"
-        rescue Timeout::Error
-          failure "HTTP (#{user}): #{case_name} - Timed out."
         end
+      rescue Timeout::Error => e
+        res_msg = "HTTP (#{user}): #{res_str} (Timed out (#{timeout_limit}s) #{e.message})"
+        failure role_name, plan_name, res_msg, res_dict
+      rescue => e
+        res_msg = "HTTP (#{user}): #{res_str} (#{e.message})"
+        failure role_name, plan_name, res_msg, res_dict
       end
 
       if not response.nil?
-          if not match.nil? and not response.body.chomp.include?(match.chomp)
-            failure "HTTP (#{user}): #{case_name} - Expected string '#{match.chomp}'"
-          elsif not expect_header_key.nil? and not expect_header_value.nil? and not response[expect_header_key].eql?(expect_header_value)
-            failure "HTTP (#{user}): #{case_name} - Expected header with content '#{expect_header_key}: #{expect_header_value}'"
-          elsif not expect_header_key.nil? and response[expect_header_key].nil?
-            failure "HTTP (#{user}): #{case_name} - Expected header '#{expect_header_key}'"
-          elsif not code.nil? and (response.code.to_i != code)
-            failure "HTTP (#{user}): #{case_name} - Expected HTTP #{code}"
-          else
-            success "HTTP (#{user}): #{case_name}"
-          end
+        if not match.nil? and not response.body.chomp.include?(match.chomp)
+          res_msg = "HTTP (#{user}): #{res_str} (Expect string '#{match.chomp}')"
+          failure role_name, plan_name, res_msg, res_dict
+        elsif not expect_header_key.nil? and not expect_header_value.nil? and not response[expect_header_key].eql?(expect_header_value)
+          res_msg = "HTTP (#{user}): #{res_str} (Expect header with content '#{expect_header_key}: #{expect_header_value}')"
+          failure role_name, plan_name, res_msg, res_dict
+        elsif not expect_header_key.nil? and response[expect_header_key].nil?
+          res_msg = "HTTP (#{user}): #{res_str} (Expect header '#{expect_header_key}')"
+          failure role_name, plan_name, res_msg, res_dict
+        elsif not code.nil? and (response.code.to_i != code)
+          res_msg = "HTTP (#{user}): #{res_str} (Expect HTTP response code #{code})"
+          failure role_name, plan_name, res_msg, res_dict
+        else
+          res_msg = "HTTP (#{user}): #{res_str}"
+          success role_name, plan_name, res_msg, res_dict
+        end
       end
     end
   end
