@@ -1,0 +1,25 @@
+{
+  "app": {
+    "desc": "Test role",
+    "acl": {
+      "port": 80,
+
+      "www.globo.com": {},
+
+      "globoesporte.globo.com": {},
+
+      "cartolafc.globo.com": {},
+
+      "doesnotexist.globo.com": {},
+
+      "www.example.com": {
+        "port": [80, 9999],
+        "timeout": 3
+      },
+
+      "localhost": {
+        "port": [22, 31337]
+      }
+    }
+  }
+}

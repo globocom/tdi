@@ -1,0 +1,16 @@
+{
+  "app": {
+    "desc": "Test role",
+    "ssh": {
+      "timeout": 7,
+
+      "u_remote@localhost": {
+        "local_user": "u_local"
+      },
+
+      "u_remote2@localhost": {
+        "local_user": ["u_local", "u_local2"]
+      }
+    }
+  }
+}

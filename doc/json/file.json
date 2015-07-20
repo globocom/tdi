@@ -1,0 +1,31 @@
+{
+  "app": {
+    "desc": "Test role",
+    "file": {
+      "user": "nobody",
+      "perm": "rw",
+      "type": "file",
+      "location": "local",
+
+      "/tmp/afile1.txt": {},
+
+      "/tmp/afile2.txt": {
+        "perm": "ro"
+      },
+
+      "/tmp/afile3.txt": {
+        "user": "root"
+      },
+
+      "/tmp/doesnotexist/afile.txt": {},
+
+      "/tmp/doesnotexist": {
+        "type": "directory"
+      },
+
+      "/tmp": {
+        "type": "directory"
+      }
+    }
+  }
+}

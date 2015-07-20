@@ -1,0 +1,38 @@
+{
+  "app": {
+    "desc": "Test role",
+    "http": {
+      "globoesporte.globo.com": {
+        "match": "<html"
+      },
+
+      "http://globoesporte.com": {
+        "code": 301,
+        "expect_header": "Location: http://globoesporte.globo.com/"
+      },
+
+      "http://api.sde.globo.com/docs": {
+        "code" : 301
+      },
+
+      "https://api.sde.globo.com/path/to/resource": {
+        "code" : 401
+      },
+
+      "doesnotexist.globo.com": {},
+
+      "https://api.cartola.globo.com/mercado/status.json": {},
+
+      "https://api.cartola.globo.com/wrong-url": {},
+
+      "http://g1.globo.com": {
+        "code": 301,
+        "match": "<html"
+      },
+
+      "http://g1.globo.com/index.html": {
+        "match": "<html"
+      }
+    }
+  }
+}
