@@ -21,8 +21,8 @@ require 'fileutils'
 require 'etc'
 
 class TDIPlan < TDI
-  def file(plan)
-    plan.select { |key, val|
+  def file(role_name, plan_name, plan_content)
+    plan_content.select { |key, val|
       val.is_a?(Hash)
     }.each_pair do |case_name, case_content|
       # Parse.
@@ -51,7 +51,7 @@ class TDIPlan < TDI
         exit 1
       end
 
-      # Apply the test to a
+      # Apply permissions test.
       def testPerm filename, perm, type
         # Perm.
         begin
@@ -89,8 +89,7 @@ class TDIPlan < TDI
       else
         df_path = path
       end
-      fs_location_query_cmd = "df -P #{df_path} | tail -n 1 | awk '{print $1}'"
-      device = `#{fs_location_query_cmd}`
+      device = %x(df -P #{df_path} | tail -n 1 | awk '{print $1}')
 
       case location
       when 'local'
@@ -103,10 +102,12 @@ class TDIPlan < TDI
       end
 
       # Verdict.
+      res_msg = "FILE (#{user}): #{path} => #{perm} #{type} #{location}"
+      res_dict = case_content
       if @flag_success
-        success "FILE (#{user}): #{path} => #{perm} #{type} #{location}"
+        success role_name, plan_name, res_msg, res_dict
       else
-        failure "FILE (#{user}): #{path} => #{perm} #{type} #{location}"
+        failure role_name, plan_name, res_msg, res_dict
       end
     end
 
