@@ -92,7 +92,7 @@ def plan_compiler(opts, plan)
   compiled_plan = {}
 
   # Role.
-  # Ex: {"admin": {"desc": "...", "acl": {"domain1": {"port": 80}...}...}...}
+  # Ex: {"app": {"desc": "...", "acl": {"domain1": {"port": 80}...}...}...}
   plan.select { |key, val|
     val.is_a?(Hash)
   }.each_with_index do |(role_name, role_content), index|
@@ -169,7 +169,7 @@ def plan_inheriter(opts, plan)
   inherited_plan = {}
 
   # Role may inherit from role.
-  # Ex: {"admin": {"desc": "...", "inherits": "other_role", "acl": {"domain1": {"port": 80}...}...}...}
+  # Ex: {"app": {"desc": "...", "inherits": "other_role", "acl": {"domain1": {"port": 80}...}...}...}
   plan.select { |key, val|
     val.is_a?(Hash)
   }.each_with_index do |(role_name, role_content), index|
@@ -243,10 +243,12 @@ def plan_filter(opts, plan)
   filtered_plan = {}
   flag_err = false
 
-  # Ex: tdi -p admin
-  # Ex: tdi -p admin::acl
-  # Ex: tdi --plan fe
-  # Ex: tdi --plan admin::acl,solr,be
+  # Ex: -p admin
+  # Ex: -p admin::acl
+  # Ex: --plan app
+  # Ex: --plan app::acl
+  # Ex: --plan fe
+  # Ex: --plan admin::acl,app,fe
   if opts.plan?
     # Do filter.
     puts 'Filtering following test plan from input file:'.cyan if opts[:verbose] > 0
