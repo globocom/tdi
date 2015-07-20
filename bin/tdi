@@ -157,31 +157,43 @@ end
 
 # Command line options.
 begin
-  opts = Slop.parse(:help => true, :strict => true) do
+  opts = Slop.parse(help: true, strict: true) do
     banner <<-EOS
 Usage:
 
-    tdi [options] test_plan_file
+    tdi test_plan_file [options]
 
 Examples:
 
     tdi tdi.json
-    tdi --plan admin tdi.json
-    tdi --plan admin::acl tdi.json
-    tdi -p admin::acl,admin::file tdi.json
-    tdi --nofail tdi.json
-    tdi --shred tdi.json
-    tdi -v tdi.json
-    tdi -vv tdi.json
-    tdi -vvv tdi.json
+
+    tdi tdi.json -n
+    tdi tdi.json --nofail
+
+    tdi tdi.json -p app
+    tdi tdi.json --plan app
+    tdi tdi.json --plan app::acl
+    tdi tdi.json --plan app::acl,app::file
+
+    tdi tdi.json -r /tmp/tdi-report.json
+    tdi tdi.json --reportfile /tmp/tdi-report.json
+
+    tdi tdi.json -s
+    tdi tdi.json --shred
+
+    tdi tdi.json -v
+    tdi tdi.json -vv
+    tdi tdi.json -vvv
+
     tdi --version
 
 Options:
 EOS
     on :n, :nofail, 'No fail mode.'
-    on :p, :plan, 'Test plan list.', :as => Array, :argument => :optional
+    on :p, :plan, 'Test plan list.', as: Array, argument: :optional
+    on :r, :reportfile, 'Report file to save test plan status.', argument: :required
     on :s, :shred, 'Wipe out the test plan, leaving no trace behind.'
-    on :v, :verbose, 'Verbose mode.', :as => :count
+    on :v, :verbose, 'Verbose mode.', as: :count
     on :version, 'Version.'
   end
 rescue => e

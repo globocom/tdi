@@ -19,6 +19,7 @@
 
 require 'os'
 require_relative 'tdi'
+require_relative 'util'
 
 # Run tests.
 def runner(opts, filename, plan)
@@ -80,7 +81,7 @@ def runner(opts, filename, plan)
       # Test plan content (test cases).
       # Ex: {"domain1": {"port": 80}, "domain2": {"port": 80}...}
       if tdiplan.respond_to?(plan_name)
-        tdiplan.send(plan_name, plan_content)
+        tdiplan.send(plan_name, role_name, plan_name, plan_content)
       else
         puts "Skipping not supported test plan type \"#{plan_name}\" for \"#{role_name}::#{plan_name}\".".yellow
         tdiplan.skip = tdiplan.skip + total_cases
@@ -93,7 +94,40 @@ def runner(opts, filename, plan)
   # Summary.
   summary(opts, tdiplan)
 
+  # Report file.
+  report(opts, tdiplan)
+
   # Shred.
+  shred(opts, filename, tdiplan)
+
+  puts 'Running tests... done.'.green if opts[:verbose] > 1
+
+  ret = tdiplan.plan_passed? ? 0 : 1
+  ret = 0 if opts.nofail?
+  ret
+end
+
+# Display test summary.
+def summary(opts, tdiplan)
+  puts '=' * 79
+  puts "Total: #{tdiplan.total}  |  Skip: #{tdiplan.skip}  |  Pass: #{tdiplan.pass}  |  Warn: #{tdiplan.warn}  |  Fail: #{tdiplan.fail}"
+end
+
+# Generate report file.
+def report(opts, tdiplan)
+  if opts[:verbose] > 2
+    puts 'Report:'.cyan
+    a_p tdiplan.report
+  end
+
+  if opts.reportfile?
+    puts "Generating report file: \"#{opts[:reportfile]}\"".cyan if opts[:verbose] > 1
+    File.open(opts[:reportfile], 'w') { |file| file.write(JSON.pretty_generate(tdiplan.report)) }
+  end
+end
+
+# Remove tdi plan file.
+def shred(opts, filename, tdiplan)
   if opts.shred?
     puts "Shreding and removing test plan file: \"#{filename}\"...".cyan if opts[:verbose] > 2
     if OS.linux?
@@ -110,16 +144,4 @@ def runner(opts, filename, plan)
       puts "ERR: Shreding and removing test plan file: \"#{filename}\".".light_magenta
     end
   end
-
-  puts 'Running tests... done.'.green if opts[:verbose] > 1
-
-  ret = tdiplan.plan_passed? ? 0 : 1
-  ret = 0 if opts.nofail?
-  ret
-end
-
-# Display test summary.
-def summary(opts, tdiplan)
-  puts '=' * 79
-  puts "Total: #{tdiplan.total}  |  Skip: #{tdiplan.skip}  |  Pass: #{tdiplan.pass}  |  Warn: #{tdiplan.warn}  |  Fail: #{tdiplan.fail}"
 end
