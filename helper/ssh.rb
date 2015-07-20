@@ -21,8 +21,8 @@ require 'net/ssh'
 require 'resolv'
 
 class TDIPlan < TDI
-  def ssh(plan)
-    plan.select { |key, val|
+  def ssh(role_name, plan_name, plan_content)
+    plan_content.select { |key, val|
       val.is_a?(Hash)
     }.each_pair do |case_name, case_content|
       # Validate.
@@ -35,6 +35,7 @@ class TDIPlan < TDI
       remote_user = case_name.split('@').first
       host = case_name.split('@').last
       local_users = [case_content['local_user']].flatten
+      timeout_limit = case_content['timeout'].nil? ? 5 : case_content['timeout'].to_i
 
       # Users.
       local_users.each do |local_user|
@@ -57,21 +58,30 @@ class TDIPlan < TDI
           exit 1
         end
 
+        # Initialize vars.
+        host_addr = nil
+        res_str = "#{remote_user}@#{host}"
+        res_dict = {local_user: local_user, remote_user: remote_user, host: host, host_addr: host_addr}
+
         begin
-          timeout(5) do
-            Resolv.getaddress(host)
+          host_addr = Resolv.getaddress(host)
+          res_str = "#{remote_user}@#{host}/#{host_addr}"
+          res_dict = {local_user: local_user, remote_user: remote_user, host: host, host_addr: host_addr}
+
+          timeout(timeout_limit) do
             ssh_session = Net::SSH.start(host,
                                          remote_user,
-                                         :auth_methods => ['publickey'])
+                                         auth_methods: ['publickey'])
             ssh_session.close
-            success "SSH (#{local_user}): #{remote_user}@#{host}"
+            res_msg = "SSH (#{local_user}): #{res_str}"
+            success role_name, plan_name, res_msg, res_dict
           end
-        rescue Resolv::ResolvError => re
-          failure "SSH (#{local_user}): #{re.message}"
-        rescue Resolv::ResolvTimeout => rt
-          failure "SSH (#{local_user}): #{rt.message}"
+        rescue Timeout::Error => e
+          res_msg = "SSH (#{local_user}): #{res_str} (Timed out (#{timeout_limit}s) #{e.message})"
+          failure role_name, plan_name, res_msg, res_dict
         rescue => e
-          failure "SSH (#{local_user}): #{remote_user}@#{host} (#{e.message})"
+          res_msg = "SSH (#{local_user}): #{res_str} (#{e.message})"
+          failure role_name, plan_name, res_msg, res_dict
         end
       end
     end
