@@ -29,4 +29,5 @@ validating your deployed infrastructure and external dependencies.)
   spec.add_runtime_dependency 'colorize'
   spec.add_runtime_dependency 'timeout', '0.0.0'
   spec.add_runtime_dependency 'net-ssh'
+  spec.add_runtime_dependency 'awesome_print'
 end

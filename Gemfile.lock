@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     tdi (0.1.6)
+      awesome_print
       colorize
       etc
       net-ssh
@@ -12,7 +13,8 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    colorize (0.7.5)
+    awesome_print (1.6.1)
+    colorize (0.7.7)
     etc (0.2.0)
     net-ssh (2.9.2)
     os (0.9.6)
