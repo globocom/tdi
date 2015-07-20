@@ -22,8 +22,8 @@ require 'timeout'
 require 'resolv'
 
 class TDIPlan < TDI
-  def acl(plan)
-    plan.select { |key, val|
+  def acl(role_name, plan_name, plan_content)
+    plan_content.select { |key, val|
       val.is_a?(Hash)
     }.each_pair do |case_name, case_content|
       # Parse.
@@ -36,26 +36,36 @@ class TDIPlan < TDI
 
       # ACL.
       ports.each do |port|
+        # Initialize vars.
+        host_addr = nil
+        res_str = "#{host}:#{port}"
+        res_dict = {host: host, host_addr: host_addr, port: port}
+
         begin
+          host_addr = Resolv.getaddress(host)
+          res_str = "#{host}/#{host_addr}:#{port}"
+          res_dict = {host: host, host_addr: host_addr, port: port}
+
           timeout(timeout_limit) do
             begin
-
-              Resolv.getaddress(host)
-              sock = TCPSocket.open(host, port)
+              sock = TCPSocket.open(host_addr, port)
               sock.close
-              success "ACL (#{user}): #{host}:#{port}"
-            rescue Errno::ECONNREFUSED
-              warning "ACL (#{user}): #{host}:#{port}"
-            rescue Errno::ECONNRESET, Errno::ETIMEDOUT
-              failure "ACL (#{user}): Connection Refused #{host}:#{port}"
-            rescue Resolv::ResolvError => re
-              failure "ACL (#{user}): #{re.message}"
-            rescue Resolv::ResolvTimeout => rt
-              failure "ACL (#{user}): #{rt.message}"
+              res_msg = "ACL (#{user}): #{res_str}"
+              success role_name, plan_name, res_msg, res_dict
+            rescue Errno::ECONNREFUSED, Errno::ECONNRESET => e
+              res_msg = "ACL (#{user}): #{res_str} (#{e.message})"
+              warning role_name, plan_name, res_msg, res_dict
+            rescue => e
+              res_msg = "ACL (#{user}): #{res_str} (#{e.message})"
+              failure role_name, plan_name, res_msg, res_dict
             end
           end
-        rescue Timeout::Error
-          failure "ACL (#{user}): Timed out (#{timeout_limit}s) #{host}:#{port}"
+        rescue Timeout::Error => e
+          res_msg = "ACL (#{user}): #{res_str} (Timed out (#{timeout_limit}s) #{e.message})"
+          failure role_name, plan_name, res_msg, res_dict
+        rescue => e
+          res_msg = "ACL (#{user}): #{res_str} (#{e.message})"
+          failure role_name, plan_name, res_msg, res_dict
         end
       end
     end
