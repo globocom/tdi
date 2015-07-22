@@ -51,12 +51,7 @@ def a_p(obj)
   }
 end
 
-# Return a list of local networks with the following entries:
-# - interface
-# - network
-# - netmask
-# - broadcast
-# - ipv4
+# Return a list of local networks and it's details.
 def local_networks
   Socket.getifaddrs.each.select { |ifaddr| ifaddr.addr.ipv4? and ! ifaddr.name.start_with?('lo') }.
     map do |ifaddr|
@@ -73,7 +68,7 @@ def local_networks
     end
 end
 
-# Return the origin network to be used when trying to connect with a remote
+# Return the origin network to be used when trying to connect to a remote
 # service.
 #
 # Stolen from:
@@ -90,11 +85,11 @@ end
 def origin_network(remote)
   orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true
 
-  host = remote # host (IP or name)
+  host = remote # host (name or IP)
   if IPAddress.valid?(remote)
-    addr = remote # use address (IP)
+    addr = remote # use address (already IP)
   else
-    addr = Resolv.getaddress(remote) rescue nil # get address (IP)
+    addr = Resolv.getaddress(remote) rescue nil # get address (resolve name to IP)
   end
 
   UDPSocket.open do |s|
