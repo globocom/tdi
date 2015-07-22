@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with TDI.  If not, see <http://www.gnu.org/licenses/>.
 
+require_relative '../lib/util'
 require 'socket'
 require 'timeout'
 require 'resolv'
@@ -37,18 +38,18 @@ class TDIPlan < TDI
       # ACL.
       ports.each do |port|
         # Initialize vars.
-        host_addr = nil
+        addr = nil
         res_str = "#{host}:#{port}"
-        res_dict = {host: host, host_addr: host_addr, port: port}
+        res_dict = {host: host, addr: addr, port: port, origin_network: origin_network(host)}
 
         begin
-          host_addr = Resolv.getaddress(host)
-          res_str = "#{host}/#{host_addr}:#{port}"
-          res_dict = {host: host, host_addr: host_addr, port: port}
+          addr = Resolv.getaddress(host)
+          res_str = "#{host}/#{addr}:#{port}"
+          res_dict = {host: host, addr: addr, port: port, origin_network: origin_network(host)}
 
           timeout(timeout_limit) do
             begin
-              sock = TCPSocket.open(host_addr, port)
+              sock = TCPSocket.open(addr, port)
               sock.close
               res_msg = "ACL (#{user}): #{res_str}"
               success role_name, plan_name, res_msg, res_dict

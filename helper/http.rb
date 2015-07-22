@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with TDI.  If not, see <http://www.gnu.org/licenses/>.
 
+require_relative '../lib/util'
 require 'net/http'
 require 'net/https'
 require 'timeout'
@@ -70,14 +71,14 @@ class TDIPlan < TDI
       user = Etc.getpwuid(Process.euid).name
 
       # Initialize vars.
-      host_addr = nil
+      addr = nil
       proxy_addr = nil
       res_str = case_name
-      res_dict = {url: case_name}
+      res_dict = {url: case_name, origin_network: origin_network(host)}
       response = nil
 
       begin
-        host_addr = Resolv.getaddress(host)
+        addr = Resolv.getaddress(host)
 
         if not proxy.nil? and not proxy_port.nil?
           proxy_addr = Resolv.getaddress(proxy)

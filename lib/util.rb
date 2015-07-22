@@ -18,9 +18,12 @@
 # along with TDI.  If not, see <http://www.gnu.org/licenses/>.
 
 require 'awesome_print'
+require 'socket'
+require 'ipaddress'
+require 'resolv'
 
-# Awesome Print config
-def a_p obj
+# Awesome Print config.
+def a_p(obj)
   ap obj, {
     indent: 2,
     index: false,
@@ -46,4 +49,67 @@ def a_p obj
       variable:   :cyanish,
     }
   }
+end
+
+# Return a list of local networks with the following entries:
+# - interface
+# - network
+# - netmask
+# - broadcast
+# - ipv4
+def local_networks
+  Socket.getifaddrs.each.select { |ifaddr| ifaddr.addr.ipv4? and ! ifaddr.name.start_with?('lo') }.
+    map do |ifaddr|
+      ip = IPAddress::IPv4.new("#{ifaddr.addr.ip_address}/#{ifaddr.netmask.ip_address}")
+      {
+        interface: ifaddr.name,
+        net: ip.network.to_string,
+        network: ip.network.address,
+        netmask: ip.netmask,
+        prefix: ip.prefix,
+        broadcast: ip.broadcast.address,
+        ipv4: ip.address,
+      }
+    end
+end
+
+# Return the origin network to be used when trying to connect with a remote
+# service.
+#
+# Stolen from:
+#
+# https://coderrr.wordpress.com/2008/05/28/get-your-local-ip-address/
+#
+# The above code does NOT make a connection or send any packets. Since UDP is a
+# stateless protocol connect() merely makes a system call which figures out how
+# to route the packets based on the address and what interface (and therefore IP
+# address) it should bind to. addr() returns an array containing the family
+# (AF_INET), local port, and local address (which is what we want) of the socket.
+# This is a good alternative to `ifconfig`/`ipconfig` solutions because it
+# doesn’t spawn a shell and it works the same on all systems.
+def origin_network(remote)
+  orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true
+
+  host = remote # host (IP or name)
+  if IPAddress.valid?(remote)
+    addr = remote # use address (IP)
+  else
+    addr = Resolv.getaddress(remote) rescue nil # get address (IP)
+  end
+
+  UDPSocket.open do |s|
+    begin
+      s.connect(remote, 1)
+      res = {from: local_networks.each.select { |locnet| locnet[:ipv4].eql?(s.addr.last) }.first}
+    rescue
+      res = {from: nil}
+    end
+
+    res[:to] = {host: host, addr: addr}
+
+    return res
+  end
+
+ensure
+  Socket.do_not_reverse_lookup = orig
 end

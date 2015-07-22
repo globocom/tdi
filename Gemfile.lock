@@ -5,6 +5,7 @@ PATH
       awesome_print
       colorize
       etc
+      ipaddress
       net-ssh
       os
       slop (~> 3.6)
@@ -16,6 +17,7 @@ GEM
     awesome_print (1.6.1)
     colorize (0.7.7)
     etc (0.2.0)
+    ipaddress (0.8.0)
     net-ssh (2.9.2)
     os (0.9.6)
     rake (10.4.2)

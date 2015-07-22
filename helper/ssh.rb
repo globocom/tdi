@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with TDI.  If not, see <http://www.gnu.org/licenses/>.
 
+require_relative '../lib/util'
 require 'net/ssh'
 require 'resolv'
 
@@ -59,14 +60,14 @@ class TDIPlan < TDI
         end
 
         # Initialize vars.
-        host_addr = nil
+        addr = nil
         res_str = "#{remote_user}@#{host}"
-        res_dict = {local_user: local_user, remote_user: remote_user, host: host, host_addr: host_addr}
+        res_dict = {local_user: local_user, remote_user: remote_user, host: host, addr: addr, origin_network: origin_network(host)}
 
         begin
-          host_addr = Resolv.getaddress(host)
-          res_str = "#{remote_user}@#{host}/#{host_addr}"
-          res_dict = {local_user: local_user, remote_user: remote_user, host: host, host_addr: host_addr}
+          addr = Resolv.getaddress(host)
+          res_str = "#{remote_user}@#{host}/#{addr}"
+          res_dict = {local_user: local_user, remote_user: remote_user, host: host, addr: addr, origin_network: origin_network(host)}
 
           timeout(timeout_limit) do
             ssh_session = Net::SSH.start(host,
