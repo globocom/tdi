@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tdi (0.1.6)
+    tdi (0.1.7)
       awesome_print
       colorize
       etc
