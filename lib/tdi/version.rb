@@ -18,5 +18,5 @@
 # along with TDI.  If not, see <http://www.gnu.org/licenses/>.
 
 module Tdi
-  VERSION = '0.1.7'
+  VERSION = '0.1.8'
 end
