@@ -58,7 +58,6 @@ def local_networks
       ip = IPAddress::IPv4.new("#{ifaddr.addr.ip_address}/#{ifaddr.netmask.ip_address}")
       {
         interface: ifaddr.name,
-        net: ip.network.to_string,
         network: ip.network.address,
         netmask: ip.netmask,
         prefix: ip.prefix,

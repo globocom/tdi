@@ -62,12 +62,12 @@ class TDIPlan < TDI
         # Initialize vars.
         addr = nil
         res_str = "#{remote_user}@#{host}"
-        res_dict = {local_user: local_user, remote_user: remote_user, host: host, addr: addr, origin_network: origin_network(host)}
+        res_dict = {local_user: local_user, remote_user: remote_user, host: host, addr: addr, net: origin_network(host)}
 
         begin
           addr = Resolv.getaddress(host)
           res_str = "#{remote_user}@#{host}/#{addr}"
-          res_dict = {local_user: local_user, remote_user: remote_user, host: host, addr: addr, origin_network: origin_network(host)}
+          res_dict = {local_user: local_user, remote_user: remote_user, host: host, addr: addr, net: origin_network(host)}
 
           timeout(timeout_limit) do
             ssh_session = Net::SSH.start(host,

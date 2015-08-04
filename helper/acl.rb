@@ -40,12 +40,12 @@ class TDIPlan < TDI
         # Initialize vars.
         addr = nil
         res_str = "#{host}:#{port}"
-        res_dict = {host: host, addr: addr, port: port, origin_network: origin_network(host)}
+        res_dict = {host: host, addr: addr, port: port, net: origin_network(host)}
 
         begin
           addr = Resolv.getaddress(host)
           res_str = "#{host}/#{addr}:#{port}"
-          res_dict = {host: host, addr: addr, port: port, origin_network: origin_network(host)}
+          res_dict = {host: host, addr: addr, port: port, net: origin_network(host)}
 
           timeout(timeout_limit) do
             begin

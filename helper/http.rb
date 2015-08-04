@@ -74,7 +74,7 @@ class TDIPlan < TDI
       addr = nil
       proxy_addr = nil
       res_str = case_name
-      res_dict = {url: case_name, origin_network: origin_network(host)}
+      res_dict = {url: case_name, net: origin_network(host)}
       response = nil
 
       begin
