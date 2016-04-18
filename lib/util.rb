@@ -20,7 +20,7 @@
 require 'awesome_print'
 require 'socket'
 require 'ipaddress'
-require 'resolv'
+require 'dnsruby'
 
 # Awesome Print config.
 def a_p(obj)
@@ -85,11 +85,7 @@ def origin_network(remote)
   orig, Socket.do_not_reverse_lookup = Socket.do_not_reverse_lookup, true
 
   host = remote # host (name or IP)
-  if IPAddress.valid?(remote)
-    addr = remote # use address (already IP)
-  else
-    addr = Resolv.getaddress(remote) rescue nil # get address (resolve name to IP)
-  end
+  addr = getaddress(remote, raise_exception: false)
 
   UDPSocket.open do |s|
     begin
@@ -106,4 +102,19 @@ def origin_network(remote)
 
 ensure
   Socket.do_not_reverse_lookup = orig
+end
+
+# Return IP address.
+def getaddress(host, raise_exception: true)
+  if IPAddress.valid?(host)
+    return host # use address (already IP)
+  else
+    dns = Dnsruby::DNS.new # get address (resolve name to IP)
+    dns.config.apply_domain = false
+    if raise_exception
+      return dns.getaddress(host).to_s
+    else
+      return dns.getaddress(host).to_s rescue nil
+    end
+  end
 end

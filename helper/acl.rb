@@ -20,7 +20,6 @@
 require_relative '../lib/util'
 require 'socket'
 require 'timeout'
-require 'resolv'
 
 class TDIPlan < TDI
   def acl(role_name, plan_name, plan_content)
@@ -43,7 +42,7 @@ class TDIPlan < TDI
         res_dict = {host: host, addr: addr, port: port, net: origin_network(host)}
 
         begin
-          addr = Resolv.getaddress(host)
+          addr = getaddress(host).to_s
           res_str = "#{host}/#{addr}:#{port}"
           res_dict = {host: host, addr: addr, port: port, net: origin_network(host)}
 

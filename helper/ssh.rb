@@ -19,7 +19,6 @@
 
 require_relative '../lib/util'
 require 'net/ssh'
-require 'resolv'
 
 class TDIPlan < TDI
   def ssh(role_name, plan_name, plan_content)
@@ -65,7 +64,7 @@ class TDIPlan < TDI
         res_dict = {local_user: local_user, remote_user: remote_user, host: host, addr: addr, net: origin_network(host)}
 
         begin
-          addr = Resolv.getaddress(host)
+          addr = getaddress(host).to_s
           res_str = "#{remote_user}@#{host}/#{addr}"
           res_dict = {local_user: local_user, remote_user: remote_user, host: host, addr: addr, net: origin_network(host)}
 

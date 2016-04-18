@@ -22,7 +22,6 @@ require 'net/http'
 require 'net/https'
 require 'timeout'
 require 'uri'
-require 'resolv'
 
 class TDIPlan < TDI
   def _parse(uri, params)
@@ -78,10 +77,10 @@ class TDIPlan < TDI
       response = nil
 
       begin
-        addr = Resolv.getaddress(host)
+        addr = getaddress(host).to_s
 
         if not proxy.nil? and not proxy_port.nil?
-          proxy_addr = Resolv.getaddress(proxy)
+          proxy_addr = getaddress(proxy).to_s
           http = Net::HTTP::Proxy(proxy, proxy_port)
           timeout(timeout_limit) do
             begin
