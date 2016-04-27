@@ -4,7 +4,6 @@ PATH
     tdi (0.1.9)
       awesome_print
       colorize
-      dnsruby
       etc
       ipaddress
       net-ssh
@@ -17,7 +16,6 @@ GEM
   specs:
     awesome_print (1.6.1)
     colorize (0.7.7)
-    dnsruby (1.59.2)
     etc (0.2.0)
     ipaddress (0.8.3)
     net-ssh (3.1.1)
