@@ -20,7 +20,6 @@
 require 'awesome_print'
 require 'socket'
 require 'ipaddress'
-require 'dnsruby'
 
 # Awesome Print config.
 def a_p(obj)
@@ -107,14 +106,12 @@ end
 # Return IP address.
 def getaddress(host, raise_exception: true)
   if IPAddress.valid?(host)
-    return host # use address (already IP)
+    return host # use address (already an IP)
   else
-    dns = Dnsruby::DNS.new # get address (resolve name to IP)
-    dns.config.apply_domain = false
     if raise_exception
-      return dns.getaddress(host).to_s
+      return Socket::getaddrinfo(host, nil, :AF_INET, :STREAM).first[2]
     else
-      return dns.getaddress(host).to_s rescue nil
+      return Socket::getaddrinfo(host, nil, :AF_INET, :STREAM).first[2] rescue nil
     end
   end
 end
