@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tdi (0.1.10)
+    tdi (0.1.11)
       awesome_print
       colorize
       etc
@@ -33,3 +33,6 @@ DEPENDENCIES
   bundler (~> 1.5)
   rake
   tdi!
+
+BUNDLED WITH
+   1.12.5
