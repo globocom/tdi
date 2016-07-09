@@ -46,7 +46,7 @@ class TDIPlan < TDI
           res_str = "#{host}/#{addr}:#{port}"
           res_dict = {host: host, addr: addr, port: port, net: origin_network(host)}
 
-          timeout(timeout_limit) do
+          Timeout::timeout(timeout_limit) do
             begin
               sock = TCPSocket.open(addr, port)
               sock.close

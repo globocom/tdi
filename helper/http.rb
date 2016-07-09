@@ -82,7 +82,7 @@ class TDIPlan < TDI
         if not proxy.nil? and not proxy_port.nil?
           proxy_addr = getaddress(proxy).to_s
           http = Net::HTTP::Proxy(proxy, proxy_port)
-          timeout(timeout_limit) do
+          Timeout::timeout(timeout_limit) do
             begin
               http.start(host, port, use_ssl: ssl, verify_mode: OpenSSL::SSL::VERIFY_NONE) { |http|
                 response = http.get(path)
@@ -99,7 +99,7 @@ class TDIPlan < TDI
             http.use_ssl = true
             http.verify_mode = OpenSSL::SSL::VERIFY_NONE
           end
-          timeout(timeout_limit) do
+          Timeout::timeout(timeout_limit) do
             begin
               http.start() { |http|
                 response = http.get(path)
