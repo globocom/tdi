@@ -9,20 +9,22 @@ PATH
       net-ssh
       os
       slop (~> 3.6)
-      timeout (= 0.0.0)
+      timeout
 
 GEM
   remote: https://rubygems.org/
   specs:
-    awesome_print (1.6.1)
-    colorize (0.7.7)
+    awesome_print (1.7.0)
+    colorize (0.8.1)
     etc (0.2.0)
     ipaddress (0.8.3)
-    net-ssh (3.1.1)
+    net-ssh (3.2.0)
     os (0.9.6)
-    rake (11.1.2)
+    rake (11.2.2)
     slop (3.6.0)
-    timeout (0.0.0)
+    timeout (0.0.1)
+      timeout-extensions
+    timeout-extensions (0.1.1)
 
 PLATFORMS
   ruby
