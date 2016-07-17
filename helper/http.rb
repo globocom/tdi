@@ -36,6 +36,7 @@ class TDIPlan < TDI
     host = _uri.host
     port = _uri.port
     path = _uri.path.empty? ? '/' : _uri.path
+    path = "#{path}?#{_uri.query}" unless _uri.query.nil?
 
     # Params.
     code = params['code'].nil? ? 200 : params['code'].to_i
