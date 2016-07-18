@@ -46,7 +46,7 @@ class TDIPlan < TDI
 
     if not params['proxy'].nil?
       proxy, proxy_port = params['proxy'].split(/:/)
-      proxy_port = 3128 unless not proxy_port.nil?
+      proxy_port = 3128 if proxy_port.nil?
     end
 
     if not params['expect_header'].nil?
@@ -75,6 +75,7 @@ class TDIPlan < TDI
       proxy_addr = nil
       res_str = case_name
       res_dict = {url: case_name, net: origin_network(host)}
+      res_dict[:proxy] = "#{proxy}:#{proxy_port}" unless proxy.nil?
       response = nil
 
       begin
