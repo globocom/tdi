@@ -9,7 +9,6 @@ PATH
       net-ssh
       os
       slop (~> 3.6)
-      timeout
 
 GEM
   remote: https://rubygems.org/
@@ -22,9 +21,6 @@ GEM
     os (0.9.6)
     rake (11.2.2)
     slop (3.6.0)
-    timeout (0.0.1)
-      timeout-extensions
-    timeout-extensions (0.1.1)
 
 PLATFORMS
   ruby

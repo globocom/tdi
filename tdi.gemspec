@@ -27,7 +27,6 @@ validating your deployed infrastructure and external dependencies.)
   spec.add_runtime_dependency 'etc'
   spec.add_runtime_dependency 'slop', '~> 3.6'
   spec.add_runtime_dependency 'colorize'
-  spec.add_runtime_dependency 'timeout'
   spec.add_runtime_dependency 'net-ssh'
   spec.add_runtime_dependency 'awesome_print'
   spec.add_runtime_dependency 'ipaddress'
