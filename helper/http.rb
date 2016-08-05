@@ -41,6 +41,7 @@ class TDIPlan < TDI
     # Params.
     code = params['code'].nil? ? 200 : params['code'].to_i
     match = params['match']
+    send_header = params['send_header']
     expect_header = params['expect_header']
     timeout_limit = params['timeout'].nil? ? 2 : params['timeout'].to_i
 
@@ -57,7 +58,7 @@ class TDIPlan < TDI
       end
     end
 
-    return host, port, path, proxy, proxy_port, code, match, expect_header_key, expect_header_value, ssl, timeout_limit
+    return host, port, path, proxy, proxy_port, send_header, code, match, expect_header_key, expect_header_value, ssl, timeout_limit
   end
 
   def http(role_name, plan_name, plan_content)
@@ -65,7 +66,7 @@ class TDIPlan < TDI
       val.is_a?(Hash)
     }.each_pair do |case_name, case_content|
       # Parse params.
-      host, port, path, proxy, proxy_port, code, match, expect_header_key, expect_header_value, ssl, timeout_limit = _parse(case_name, case_content)
+      host, port, path, proxy, proxy_port, send_header, code, match, expect_header_key, expect_header_value, ssl, timeout_limit = _parse(case_name, case_content)
 
       # User.
       user = Etc.getpwuid(Process.euid).name
@@ -76,7 +77,13 @@ class TDIPlan < TDI
       res_str = case_name
       res_dict = {url: case_name, net: origin_network(host)}
       res_dict[:proxy] = "#{proxy}:#{proxy_port}" unless proxy.nil?
+      headers = nil
       response = nil
+
+      if not send_header.nil?
+        hdr, val = send_header.split(': ')
+        headers = Hash[hdr, val]
+      end
 
       begin
         addr = getaddress(host).to_s
@@ -87,7 +94,7 @@ class TDIPlan < TDI
           Timeout::timeout(timeout_limit) do
             begin
               http.start(host, port, use_ssl: ssl, verify_mode: OpenSSL::SSL::VERIFY_NONE) { |http|
-                response = http.get(path)
+                response = http.get(path, headers)
               }
             rescue Errno::ECONNREFUSED, Errno::ECONNRESET => e
               res_msg = "HTTP (#{user}): #{res_str} (#{e.message})"
@@ -104,7 +111,7 @@ class TDIPlan < TDI
           Timeout::timeout(timeout_limit) do
             begin
               http.start() { |http|
-                response = http.get(path)
+                response = http.get(path, headers)
               }
             rescue Errno::ECONNREFUSED, Errno::ECONNRESET => e
               res_msg = "HTTP (#{user}): #{res_str} (#{e.message})"
