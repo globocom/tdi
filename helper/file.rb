@@ -103,7 +103,7 @@ class TDIPlan < TDI
 
       # Verdict.
       res_msg = "FILE (#{user}): #{path} => #{perm} #{type} #{location}"
-      res_dict = case_content
+      res_dict = {:path => case_name}.merge(case_content)
       if @flag_success
         success role_name, plan_name, res_msg, res_dict
       else
