@@ -32,6 +32,12 @@
 
       "http://g1.globo.com/index.html": {
         "match": "<html"
+      },
+
+      "186.192.90.5": {
+        "send_header": "Host: globo.com",
+        "code": 301,
+        "expect_header": "Location: http://www.globo.com/"
       }
     }
   }
