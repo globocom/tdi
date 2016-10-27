@@ -24,7 +24,6 @@ validating your deployed infrastructure and external dependencies.)
   spec.add_development_dependency 'rake'
 
   spec.add_runtime_dependency 'os'
-  spec.add_runtime_dependency 'etc'
   spec.add_runtime_dependency 'slop', '~> 3.6'
   spec.add_runtime_dependency 'colorize'
   spec.add_runtime_dependency 'net-ssh'

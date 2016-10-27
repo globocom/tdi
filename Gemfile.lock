@@ -4,7 +4,6 @@ PATH
     tdi (0.2.1)
       awesome_print
       colorize
-      etc
       ipaddress
       net-ssh
       os
@@ -15,7 +14,6 @@ GEM
   specs:
     awesome_print (1.7.0)
     colorize (0.8.1)
-    etc (0.2.0)
     ipaddress (0.8.3)
     net-ssh (3.2.0)
     os (0.9.6)
@@ -31,4 +29,4 @@ DEPENDENCIES
   tdi!
 
 BUNDLED WITH
-   1.12.5
+   1.13.6
