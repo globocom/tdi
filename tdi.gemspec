@@ -4,6 +4,11 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 require 'tdi/version'
 
+# Only git tracked files listed below will be packaged
+release_include_files = %w(LICENSE.txt README.md)
+# Only git tracked dirs listed below will be packaged
+release_include_dirs = %w(bin doc helper lib)
+
 Gem::Specification.new do |spec|
   spec.name          = 'tdi'
   spec.version       = Tdi::VERSION
@@ -15,7 +20,12 @@ validating your deployed infrastructure and external dependencies.)
   spec.homepage      = 'https://github.com/globocom/tdi'
   spec.license       = 'GPL-3.0'
 
-  spec.files         = `git ls-files`.split($/)
+  spec.files         = release_include_files +
+    `git ls-files`.split($/).select do |git_ls_path|
+      release_include_dirs.any? do |dir_entry|
+        git_ls_path.start_with?("#{dir_entry}/")
+      end
+    end
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib', 'helpers']
