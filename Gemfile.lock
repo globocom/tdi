@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tdi (0.2.1)
+    tdi (0.2.2)
       awesome_print
       colorize
       ipaddress
