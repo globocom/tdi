@@ -19,6 +19,10 @@
 
 require 'fileutils'
 require 'etc'
+require 'sys/filesystem'
+include Sys
+
+REMOTE_FS_LIST = %w(cifs coda nfs nfs4 smbfs)
 
 class TDIPlan < TDI
   def file(role_name, plan_name, plan_content)
@@ -84,18 +88,14 @@ class TDIPlan < TDI
       end
 
       # Location.
-      unless type.eql?('directory')
-        df_path = File.dirname(path)
-      else
-        df_path = path
-      end
-      device = %x(df -P #{df_path} | tail -n 1 | awk '{print $1}')
+      mount_p = Filesystem.mount_point(path)
+      mount_t = Filesystem.mounts.select { |mount| mount.mount_point.eql?(mount_p) }.first.mount_type
 
       case location
       when 'local'
-        @flag_success = false if device.include?(':')
+        @flag_success = false if REMOTE_FS_LIST.include?(mount_t)
       when 'nfs'
-        @flag_success = false unless device.include?(':')
+        @flag_success = false unless mount_t.eql?('nfs')
       else
         puts "ERR: Invalid file plan format \"#{location}\". Location must be \"local\" or \"nfs\".".light_magenta
         exit 1

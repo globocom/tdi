@@ -39,4 +39,5 @@ validating your deployed infrastructure and external dependencies.)
   spec.add_runtime_dependency 'net-ssh'
   spec.add_runtime_dependency 'awesome_print'
   spec.add_runtime_dependency 'ipaddress'
+  spec.add_runtime_dependency 'sys-filesystem'
 end
