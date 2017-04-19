@@ -21,14 +21,9 @@ require 'socket'
 require_relative 'tdi/version'
 
 class TDI
-  attr_accessor :plan_passed, :case_passed
-  alias :plan_passed? :plan_passed
-  alias :case_passed? :case_passed
   attr_accessor :skip, :pass, :warn, :fail, :report
 
   def initialize
-    @plan_passed = true
-    @case_passed = true
     @skip = 0
     @pass = 0
     @warn = 0
@@ -59,8 +54,6 @@ class TDI
   def failure(role_name, plan_name, res_msg, res_dict)
     update_report(:fail, role_name, plan_name, res_dict)
     printf("%-70s [ %s ]\n", res_msg, 'FAIL'.light_red)
-    @plan_passed = false
-    @case_passed = false
     @fail += 1
   end
 
