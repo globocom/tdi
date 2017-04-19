@@ -247,7 +247,10 @@ tdi_plan = {
   :app => {
     :desc => 'Test role',
     :acl => {'localhost' => {:port => [22, 80]}},
-    :http => {'globo.com' => {:code => 301}},
+    :http => {
+      'globo.com' => {:code => 301},
+      'noexist.globo.com' => {:code => 200},
+    },
   }
 }
 
@@ -263,14 +266,17 @@ tdi_plan = {
   'app': {
     'desc': 'Test role',
     'acl': {'localhost': {'port': [22, 80]}},
-    'http': {'globo.com': {'code': 301}},
+    'http': {
+      'globo.com': {'code': 301},
+      'noexist.globo.com': {'code': 200},
+    },
   }
 }
 
 open('tdi.json', 'w').write(json.dumps(tdi_plan, indent=2))
 ```
 
-### Validate
+### Validating your plan file
 
 Use JSONLint site to validate your JSONs.
 
