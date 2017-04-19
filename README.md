@@ -288,23 +288,23 @@ Return codes are:
 
 * `0` if all `success`
 
-![success](https://github.com/globocom/tdi/tree/master/doc/output/success.png)
+![success](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/success.png)
 
 * `1` if any `failure`
 
-![failure](https://github.com/globocom/tdi/tree/master/doc/output/failure.png)
+![failure](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/failure.png)
 
 * `2` if any `warning`
 
-![warning](https://github.com/globocom/tdi/tree/master/doc/output/warning.png)
+![warning](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/warning.png)
 
 * `3` if `both failure and warning`
 
-![both](https://github.com/globocom/tdi/tree/master/doc/output/both.png)
+![both](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/both.png)
 
 * `0` regardless failure or warning if `-n` or `--nofail`
 
-![nofail](https://github.com/globocom/tdi/tree/master/doc/output/nofail.png)
+![nofail](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/nofail.png)
 
 ## Contributors
 
