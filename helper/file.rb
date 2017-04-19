@@ -74,33 +74,56 @@ class TDIPlan < TDI
       # Type.
       case type
       when 'directory'
+        # Access?
+        # Must exist, be readable and executable.
+        @flag_success = File.exist?(path) && File.readable?(path) && File.executable?(path)
+        @flag_success = File.exist?(path) && File.readable?(path) && File.executable?(path) && File.writable?(path) if perm.eql?('rw')
+
         # Path.
         filename = "#{path}/#{ENV['HOSTNAME']}.rw"
-        testPerm filename, perm, type
+        testPerm filename, perm, type if @flag_success # must be accessible or false positive may manifest
       when 'file'
+        # Access?
+        # Must exist and be readable.
+        @flag_success = File.exist?(path) && File.readable?(path)
+        @flag_success = File.exist?(path) && File.readable?(path) && File.writable?(path) if perm.eql?('rw')
+
         # Path.
         filename = path
-        testPerm filename, perm, type
+        testPerm filename, perm, type if @flag_success # must be accessible or false positive may manifest
       when 'link'
-          @flag_success = File.symlink?(path)
-          @flag_success = File.exist?(path) if @flag_success
+        # Access?
+        # Must exist and be readable. Target must also exist.
+        @flag_success = File.symlink?(path) && File.exist?(path) && File.readable?(path)
+        @flag_success = File.symlink?(path) && File.exist?(path) && File.readable?(path) && File.writable?(path) if perm.eql?('rw')
       else
         puts "ERR: Invalid file plan format \"#{type}\". Type must be \"directory\", \"file\" or \"link\".".light_magenta
         exit 1
       end
 
       # Location.
-      mount_p = Filesystem.mount_point(path)
-      mount_t = Filesystem.mounts.select { |mount| mount.mount_point.eql?(mount_p) }.first.mount_type
+      if @flag_success
+        mount_p = File.realpath(path)
+        mount_t = nil
+        while !mount_p.eql?('/') && mount_t.nil?
+          mount_t = Filesystem.mounts.select { |mount| mount.mount_point.eql?(mount_p) }.first
+          mount_t = mount_t.mount_type unless mount_t.nil?
+          mount_p = File.expand_path("#{mount_p}/../") # pop leaf dir before next iteration
+        end
+        if mount_t.nil?
+          mount_p = '/'
+          mount_t = Filesystem.mounts.select { |mount| mount.mount_point.eql?(mount_p) }.first.mount_type
+        end
 
-      case location
-      when 'local'
-        @flag_success = false if REMOTE_FS_LIST.include?(mount_t)
-      when 'nfs'
-        @flag_success = false unless mount_t.eql?('nfs')
-      else
-        puts "ERR: Invalid file plan format \"#{location}\". Location must be \"local\" or \"nfs\".".light_magenta
-        exit 1
+        case location
+        when 'local'
+          @flag_success = false if REMOTE_FS_LIST.include?(mount_t)
+        when 'nfs'
+          @flag_success = false unless mount_t.eql?('nfs')
+        else
+          puts "ERR: Invalid file plan format \"#{location}\". Location must be \"local\" or \"nfs\".".light_magenta
+          exit 1
+        end
       end
 
       # Verdict.
