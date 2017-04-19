@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    tdi (0.2.3)
+    tdi (0.2.4)
       awesome_print
       colorize
       ipaddress
@@ -33,4 +33,4 @@ DEPENDENCIES
   tdi!
 
 BUNDLED WITH
-   1.14.4
+   1.14.6
