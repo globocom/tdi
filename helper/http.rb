@@ -75,7 +75,11 @@ class TDIPlan < TDI
       addr = nil
       proxy_addr = nil
       res_str = case_name
-      res_dict = {url: case_name, net: origin_network(host)}
+      if proxy.nil?
+        res_dict = {url: case_name, net: origin_network(host)}
+      else
+        res_dict = {url: case_name, net: origin_network(proxy)}
+      end
       res_dict[:proxy] = "#{proxy}:#{proxy_port}" unless proxy.nil?
       headers = nil
       response = nil
@@ -87,6 +91,13 @@ class TDIPlan < TDI
 
       begin
         addr = getaddress(host).to_s
+
+        # Update report information to keep :to key pointing to the actual host,
+        # not to the proxy host. Add :via key with proxy network data.
+        unless proxy.nil?
+          res_dict[:net][:via] = res_dict[:net][:to]
+          res_dict[:net][:to] = {host: host, addr: addr}
+        end
 
         if not proxy.nil? and not proxy_port.nil?
           proxy_addr = getaddress(proxy).to_s
