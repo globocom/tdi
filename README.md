@@ -282,6 +282,30 @@ Use JSONLint site to validate your JSONs.
 
 http://jsonlint.com/
 
+## Running test plans and their possible `return codes`
+
+Return codes are:
+
+* `0` if all `success`
+
+![success](https://github.com/globocom/tdi/tree/master/doc/output/success.png)
+
+* `1` if any `failure`
+
+![failure](https://github.com/globocom/tdi/tree/master/doc/output/failure.png)
+
+* `2` if any `warning`
+
+![warning](https://github.com/globocom/tdi/tree/master/doc/output/warning.png)
+
+* `3` if `both failure and warning`
+
+![both](https://github.com/globocom/tdi/tree/master/doc/output/both.png)
+
+* `0` regardless failure or warning if `-n` or `--nofail`
+
+![nofail](https://github.com/globocom/tdi/tree/master/doc/output/nofail.png)
+
 ## Contributors
 
 [People](https://github.com/globocom/tdi/graphs/contributors)
