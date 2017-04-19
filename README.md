@@ -40,6 +40,9 @@ Examples:
     tdi tdi.json -n
     tdi tdi.json --nofail
 
+    tdi tdi.json -w
+    tdi tdi.json --warnfail
+
     tdi tdi.json -p app
     tdi tdi.json --plan app
     tdi tdi.json --plan app::acl
@@ -60,6 +63,7 @@ Examples:
 Options:
 
     -n, --nofail          No fail mode.
+    -w, --warnfail        Fail if any warning.
     -p, --plan            Test plan list.
     -r, --reportfile      Report file to save test plan status.
     -s, --shred           Wipe out the test plan, leaving no trace behind.
@@ -290,13 +294,17 @@ Return codes are:
 
 ![success](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/success.png)
 
+* `0` by default even if warning (warning should not generate a validation error)
+
+![warning](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/warning.png)
+
 * `1` if any `failure`
 
 ![failure](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/failure.png)
 
 * `2` if any `warning` plus option `-w` or `--warnfail`
 
-![warning](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/warning.png)
+![warnfail](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/warnfail.png)
 
 * `3` if both `failure` and `warning` plus option `-w` or `--warnfail`
 
