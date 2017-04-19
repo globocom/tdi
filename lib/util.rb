@@ -52,7 +52,7 @@ end
 
 # Return a list of local networks and it's details.
 def local_networks
-  Socket.getifaddrs.each.select { |ifaddr| ifaddr.addr.ipv4? and ! ifaddr.name.start_with?('lo') }.
+  Socket.getifaddrs.each.select { |ifaddr| ifaddr.addr.ipv4? && !ifaddr.name.start_with?('lo') }.
     map do |ifaddr|
       ip = IPAddress::IPv4.new("#{ifaddr.addr.ip_address}/#{ifaddr.netmask.ip_address}")
       {

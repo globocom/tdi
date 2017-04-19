@@ -64,8 +64,10 @@ class TDIPlan < TDI
         rescue
           @flag_success = false if perm.eql?('rw')
         ensure
-          # Cleanup, if type is directory (remove tempfile).
-          FileUtils.rm(filename) if type.eql?('directory') rescue nil
+          # Cleanup. If type is directory, remove tempfile.
+          if type.eql?('directory')
+            FileUtils.rm(filename) rescue nil
+          end
         end
       end
 

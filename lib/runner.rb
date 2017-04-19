@@ -30,7 +30,7 @@ def runner(opts, filename, plan)
   # Ex: {"common": {"desc": "...", "acl": {"domain1": {"port": 80}...}...}...}
   plan.select { |role_name, role_content|
     if role_content.is_a?(Hash)
-      UNTESTABLE_ROLE_LIST.include?(role_name) or role_content['notest'].eql?('true')
+      UNTESTABLE_ROLE_LIST.include?(role_name) || role_content['notest'].eql?('true')
     end
   }.each_pair do |role_name, role_content|
     puts "Skipping reserved or disabled role: #{role_name}".yellow if opts[:verbose] > 0
@@ -39,7 +39,7 @@ def runner(opts, filename, plan)
   # Remove untestable roles.
   plan.reject! { |role_name, role_content|
     if role_content.is_a?(Hash)
-      UNTESTABLE_ROLE_LIST.include?(role_name) or role_content['notest'].eql?('true')
+      UNTESTABLE_ROLE_LIST.include?(role_name) || role_content['notest'].eql?('true')
     end
   }
   total_roles = plan.select { |key, val| val.is_a?(Hash) }.size

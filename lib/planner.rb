@@ -132,9 +132,9 @@ def plan_compiler(opts, plan)
         end
 
         # Test case compile.
-        new_case_content = role_content.reject { |key, val| UNMERGEABLE_KEY_LIST.include?(key) or val.is_a?(Hash) }
-        new_case_content.merge!(plan_content.reject { |key, val| UNMERGEABLE_KEY_LIST.include?(key) or val.is_a?(Hash) })
-        new_case_content.merge!(case_content.reject { |key, val| UNMERGEABLE_KEY_LIST.include?(key) or val.is_a?(Hash) })
+        new_case_content = role_content.reject { |key, val| UNMERGEABLE_KEY_LIST.include?(key) || val.is_a?(Hash) }
+        new_case_content.merge!(plan_content.reject { |key, val| UNMERGEABLE_KEY_LIST.include?(key) || val.is_a?(Hash) })
+        new_case_content.merge!(case_content.reject { |key, val| UNMERGEABLE_KEY_LIST.include?(key) || val.is_a?(Hash) })
 
         # Test case (new, merged).
         compiled_plan[role_name][plan_name][case_name] = new_case_content
@@ -209,7 +209,7 @@ def plan_inheriter(opts, plan)
       unless i_plan.nil?
         i_role_name, i_plan_name = role_plan_split(i_plan)
 
-        if i_role_name.nil? or i_plan_name.nil?
+        if i_role_name.nil? || i_plan_name.nil?
           puts "ERR: Invalid inheritance \"#{i_plan}\". Must match pattern \"role::plan\".".light_magenta
           exit 1
         end
