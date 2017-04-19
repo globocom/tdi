@@ -170,6 +170,9 @@ Examples:
     tdi tdi.json -n
     tdi tdi.json --nofail
 
+    tdi tdi.json -w
+    tdi tdi.json --warnfail
+
     tdi tdi.json -p app
     tdi tdi.json --plan app
     tdi tdi.json --plan app::acl
@@ -190,6 +193,7 @@ Examples:
 Options:
 EOS
     on :n, :nofail, 'No fail mode.'
+    on :w, :warnfail, 'Fail if any warning.'
     on :p, :plan, 'Test plan list.', as: Array, argument: :optional
     on :r, :reportfile, 'Report file to save test plan status.', argument: :required
     on :s, :shred, 'Wipe out the test plan, leaving no trace behind.'

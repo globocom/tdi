@@ -294,11 +294,11 @@ Return codes are:
 
 ![failure](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/failure.png)
 
-* `2` if any `warning`
+* `2` if any `warning` plus option `-w` or `--warnfail`
 
 ![warning](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/warning.png)
 
-* `3` if `both failure and warning`
+* `3` if both `failure` and `warning` plus option `-w` or `--warnfail`
 
 ![both](https://raw.githubusercontent.com/globocom/tdi/master/doc/output/both.png)
 

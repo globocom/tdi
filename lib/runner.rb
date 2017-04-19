@@ -104,12 +104,12 @@ def runner(opts, filename, plan)
 
   ret = 0
   ret += 1 if tdiplan.fail > 0
-  ret += 2 if tdiplan.warn > 0
+  ret += 2 if opts.warnfail? && tdiplan.warn > 0
   ret = 0 if opts.nofail?
   # 1 if failures
-  # 2 if warnings
-  # 3 if both
-  # 0 if none
+  # 2 if warnings (only if -w/--warnfail is active)
+  # 3 if both (only if -w/--warnfail is active)
+  # 0 if none or if -n/--nofail is active
   ret
 end
 
